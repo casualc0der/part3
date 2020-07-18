@@ -34,30 +34,6 @@ app.use(
   })
 );
 
-let phoneBook = [
-  {
-    name: "Edd Sansome",
-    number: "007-111333",
-    id: 1,
-  },
-  {
-    name: "Tom Sansome",
-    number: "001-123123",
-    id: 2,
-  },
-  {
-    name: "Will Sansome",
-    number: "069-123321",
-    id: 3,
-  },
-];
-
-const generateId = () => {
-  const maxId =
-    phoneBook.length > 0 ? Math.max(...phoneBook.map((p) => p.id)) : 0;
-  return maxId + 1;
-};
-
 app.get("/api/persons", (req, res) => {
   Contact.find({}).then((contacts) => {
     res.json(contacts);
@@ -68,11 +44,6 @@ app.post("/api/persons", (req, res) => {
   if (!req.body.name || !req.body.number) {
     return res.status(400).json({
       error: "content missing",
-    });
-  }
-  if (phoneBook.find((x) => x.name === req.body.name)) {
-    return res.status(400).json({
-      error: "name already in phonebook",
     });
   }
 
