@@ -7,6 +7,7 @@ const unknownEndpoint = (req, res) => {
   res.status(404).send({ error: "unknown endpoint" });
 };
 app.use(cors());
+app.use(express.static("build"));
 app.use(express.json());
 morgan.token("content", function (req, res) {
   const content = req.method === "POST" ? JSON.stringify(req.body) : "";
