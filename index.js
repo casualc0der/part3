@@ -1,8 +1,14 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const app = express();
 const morgan = require("morgan");
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
+const Contact = require("./models/contact");
+const errorHandler = require("./services/errorhandler");
+const { json, response } = require("express");
+
 const unknownEndpoint = (req, res) => {
   res.status(404).send({ error: "unknown endpoint" });
 };
@@ -53,7 +59,9 @@ const generateId = () => {
 };
 
 app.get("/api/persons", (req, res) => {
-  res.json(phoneBook);
+  Contact.find({}).then((contacts) => {
+    res.json(contacts);
+  });
 });
 
 app.post("/api/persons", (req, res) => {
@@ -68,18 +76,33 @@ app.post("/api/persons", (req, res) => {
     });
   }
 
-  const person = {
+  const contact = new Contact({
     name: req.body.name,
     number: req.body.number,
     date: new Date(),
-    id: generateId(),
-  };
+  });
+  contact.save().then((savedContact) => {
+    res.json(savedContact);
+  });
+});
 
-  phoneBook = phoneBook.concat(person);
-  res.json(person);
+app.put("/api/persons/:id", (req, res) => {
+  Contact.findById(req.params.id).then((contact) => {
+    contact.number = req.body.number;
+    contact
+      .save()
+      .then((savedContact) => {
+        res.json(savedContact);
+      })
+      .catch((error) => next(error));
+  });
 });
 
 app.get("/", (req, res) => {
+  res.json({ message: "This is the hompage(for heroku)!" });
+});
+
+app.get("/info", (req, res) => {
   const d = new Date();
   const days = [
     "Sunday",
@@ -104,41 +127,49 @@ app.get("/", (req, res) => {
     "November",
     "December",
   ];
-  res.send(`
-  <p>Phonebook has info for ${phoneBook.length} people
+
+  Contact.find({}).then((contacts) => {
+    res.send(`
+  <p>Phonebook has info for ${contacts.length} people
   <p>${days[d.getUTCDay()]} ${months[d.getUTCMonth()]} ${d.getUTCDate()}
    ${d.getUTCFullYear()} UTC- ${d.getUTCHours()}:${d.getUTCMinutes()}:${d.getUTCSeconds()} </p>
   
   `);
+  });
 });
 
-app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = phoneBook.find((p) => p.id === id);
-  if (!person) {
-    return res.status(404).json({
-      error: "Person not found!",
-    });
-  }
-  res.send(`
-  <h1>${person.name}</h1>
-  <h2>${person.number}</h2>
-  
-  `);
+app.get("/api/persons/:id", (req, res, next) => {
+  Contact.findById(req.params.id)
+    .then((contact) => {
+      if (contact) {
+        res.json(contact);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
 app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = phoneBook.find((p) => p.id === id);
-  if (!person) {
-    return res.status(404).json({
-      error: "person not found!",
-    });
-  }
-  phoneBook = phoneBook.filter((p) => p.id !== id);
-  res.status(204).end();
+  Contact.findByIdAndRemove(req.params.id)
+    .then((result) => {
+      res.status(204).end();
+    })
+    .catch((error) => next(error));
+
+  // const id = Number(req.params.id);
+  // const person = phoneBook.find((p) => p.id === id);
+  // if (!person) {
+  //   return res.status(404).json({
+  //     error: "person not found!",
+  //   });
+  // }
+  // phoneBook = phoneBook.filter((p) => p.id !== id);
+  // res.status(204).end();
 });
+
 app.use(unknownEndpoint);
 app.listen(PORT, () => {
   console.log(`app is running on port ${PORT}`);
 });
+app.use(errorHandler);

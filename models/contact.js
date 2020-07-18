@@ -1,17 +1,17 @@
 const mongoose = require("mongoose");
 
-if (process.argv.length < 3) {
-  console.log("USAGE: node mongo.js <password> <name> <phonenumber>");
-  process.exit(1);
-}
+const url = process.env.MONGODB_URI;
 
-const password = process.argv[2];
-const name = process.argv[3];
-const number = process.argv[4];
+console.log("connecting to", url);
 
-const url = `mongodb+srv://casualedd:${password}@cluster0-o8mxt.mongodb.net/phonebook?retryWrites=true&w=majority`;
-
-mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose
+  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then((result) => {
+    console.log("connected to mongoDB");
+  })
+  .catch((error) => {
+    console.log("error connecting to mongoDB", error.message);
+  });
 
 const phonebookSchema = new mongoose.Schema({
   name: String,
@@ -19,17 +19,21 @@ const phonebookSchema = new mongoose.Schema({
   date: Date,
 });
 
-const Contact = mongoose.model("Contact", phonebookSchema);
+phonebookSchema.set("toJSON", {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  },
+});
 
+module.exports = mongoose.model("Contact", phonebookSchema);
+
+//get//
 if (process.argv.length === 3) {
-  Contact.find({}).then((result) => {
-    result.forEach((contact) => {
-      console.log(`${contact.name} ${contact.number}`);
-    });
-    mongoose.connection.close();
-  });
 }
 
+//post
 if (process.argv.length === 5) {
   const contact = new Contact({
     name: name,
