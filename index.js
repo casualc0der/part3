@@ -1,10 +1,12 @@
 const express = require("express");
+const cors = require("cors");
 const app = express();
 const morgan = require("morgan");
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const unknownEndpoint = (req, res) => {
   res.status(404).send({ error: "unknown endpoint" });
 };
+app.use(cors());
 app.use(express.json());
 morgan.token("content", function (req, res) {
   const content = req.method === "POST" ? JSON.stringify(req.body) : "";
@@ -76,7 +78,7 @@ app.post("/api/persons", (req, res) => {
   res.json(person);
 });
 
-app.get("/info", (req, res) => {
+app.get("/", (req, res) => {
   const d = new Date();
   const days = [
     "Sunday",
