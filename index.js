@@ -4,9 +4,11 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const morgan = require("morgan");
+// eslint-disable-next-line no-undef
 const PORT = process.env.PORT;
 const Contact = require("./models/contact");
 const errorHandler = require("./services/errorhandler");
+// eslint-disable-next-line no-unused-vars
 const { json, response } = require("express");
 
 const unknownEndpoint = (req, res) => {
@@ -15,7 +17,7 @@ const unknownEndpoint = (req, res) => {
 app.use(cors());
 app.use(express.static("build"));
 app.use(express.json());
-morgan.token("content", function (req, res) {
+morgan.token("content", function (req) {
   const content = req.method === "POST" ? JSON.stringify(req.body) : "";
   return content;
 });
@@ -126,7 +128,7 @@ app.get("/api/persons/:id", (req, res, next) => {
 
 app.delete("/api/persons/:id", (req, res, next) => {
   Contact.findByIdAndRemove(req.params.id)
-    .then((result) => {
+    .then(() => {
       res.status(204).end();
     })
     .catch((error) => next(error));

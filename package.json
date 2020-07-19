@@ -12,6 +12,7 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "eslint": "^7.5.0",
     "nodemon": "^2.0.4"
   },
   "scripts": {
@@ -20,6 +21,7 @@
     "deploy:full": "yarn run build:ui && git add . && git commit -m uibuild && yarn run deploy",
     "logs:prod": "heroku logs --tail",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "lint": "eslint ."
   }
 }
