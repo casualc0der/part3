@@ -40,7 +40,7 @@ app.get("/api/persons", (req, res) => {
   });
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   if (!req.body.name || !req.body.number) {
     return res.status(400).json({
       error: "content missing",
@@ -52,12 +52,15 @@ app.post("/api/persons", (req, res) => {
     number: req.body.number,
     date: new Date(),
   });
-  contact.save().then((savedContact) => {
-    res.json(savedContact);
-  });
+  contact
+    .save()
+    .then((savedContact) => {
+      res.json(savedContact);
+    })
+    .catch((error) => next(error));
 });
 
-app.put("/api/persons/:id", (req, res) => {
+app.put("/api/persons/:id", (req, res, next) => {
   Contact.findById(req.params.id).then((contact) => {
     contact.number = req.body.number;
     contact
@@ -121,22 +124,12 @@ app.get("/api/persons/:id", (req, res, next) => {
     .catch((error) => next(error));
 });
 
-app.delete("/api/persons/:id", (req, res) => {
+app.delete("/api/persons/:id", (req, res, next) => {
   Contact.findByIdAndRemove(req.params.id)
     .then((result) => {
       res.status(204).end();
     })
     .catch((error) => next(error));
-
-  // const id = Number(req.params.id);
-  // const person = phoneBook.find((p) => p.id === id);
-  // if (!person) {
-  //   return res.status(404).json({
-  //     error: "person not found!",
-  //   });
-  // }
-  // phoneBook = phoneBook.filter((p) => p.id !== id);
-  // res.status(204).end();
 });
 
 app.use(unknownEndpoint);
